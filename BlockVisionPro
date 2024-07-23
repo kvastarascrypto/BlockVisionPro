@@ -1,0 +1,98 @@
+# BlockVisionPro.py
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import requests
+
+class BlockVisionPro:
+    def __init__(self, api_url: str):
+        self.api_url = api_url
+        self.data = pd.DataFrame()
+
+    def fetch_block_data(self, block_number: int) -> dict:
+        """
+        Fetch data for a specific block from the blockchain.
+        """
+        url = f"{self.api_url}/block/{block_number}"
+        response = requests.get(url)
+        data = response.json()
+        return data
+
+    def fetch_latest_block_number(self) -> int:
+        """
+        Fetch the latest block number from the blockchain.
+        """
+        url = f"{self.api_url}/block/latest"
+        response = requests.get(url)
+        data = response.json()
+        return data['number']
+
+    def fetch_transaction_data(self, transaction_hash: str) -> dict:
+        """
+        Fetch data for a specific transaction from the blockchain.
+        """
+        url = f"{self.api_url}/transaction/{transaction_hash}"
+        response = requests.get(url)
+        data = response.json()
+        return data
+
+    def analyze_block_transactions(self, block_data: dict) -> pd.DataFrame:
+        """
+        Analyze transactions in a given block.
+        """
+        transactions = block_data['transactions']
+        df = pd.DataFrame(transactions)
+        self.data = df
+        return df
+
+    def visualize_block_transactions(self):
+        """
+        Visualize transactions within a block.
+        """
+        if self.data.empty:
+            print("No transaction data available. Please fetch and analyze block data first.")
+            return
+
+        plt.figure(figsize=(10, 6))
+        plt.hist(self.data['value'], bins=50, alpha=0.7, color='blue')
+        plt.title('Distribution of Transaction Values')
+        plt.xlabel('Transaction Value')
+        plt.ylabel('Frequency')
+        plt.show()
+
+    def visualize_transaction_fees(self):
+        """
+        Visualize transaction fees within a block.
+        """
+        if self.data.empty:
+            print("No transaction data available. Please fetch and analyze block data first.")
+            return
+
+        plt.figure(figsize=(10, 6))
+        plt.hist(self.data['gasPrice'], bins=50, alpha=0.7, color='green')
+        plt.title('Distribution of Transaction Fees')
+        plt.xlabel('Gas Price')
+        plt.ylabel('Frequency')
+        plt.show()
+
+# Example usage
+if __name__ == "__main__":
+    api_url = 'https://api.blockchain.com/v3/exchange'
+    
+    block_vision = BlockVisionPro(api_url)
+    
+    # Fetch latest block number
+    latest_block_number = block_vision.fetch_latest_block_number()
+    
+    # Fetch block data for the latest block
+    block_data = block_vision.fetch_block_data(latest_block_number)
+    
+    # Analyze transactions within the block
+    transactions_df = block_vision.analyze_block_transactions(block_data)
+    
+    # Visualize transactions
+    block_vision.visualize_block_transactions()
+    
+    # Visualize transaction fees
+    block_vision.visualize_transaction_fees()
